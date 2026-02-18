@@ -6,7 +6,7 @@ import App from '../App'
 describe('App', () => {
   it('renders Recipe Book heading', () => {
     render(<App />)
-    expect(screen.getByText('Recipe Book')).toBeInTheDocument()
+    expect(screen.getByText('Recipe Book', { selector: '.nav-logo-text' })).toBeInTheDocument()
   })
 
   it('renders My Recipes heading', () => {
