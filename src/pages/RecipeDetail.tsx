@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Clock, Users, ChefHat, ArrowLeft, Edit2, Trash2, AlertCircle } from 'lucide-react'
 import type { RecipeWithIngredients } from '../types'
+import { IngredientList } from '../components'
 import './RecipeDetail.css'
 
 export function RecipeDetail() {
@@ -75,26 +76,6 @@ export function RecipeDetail() {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
-  }
-
-  const formatUnit = (unit: string): string => {
-    const unitLabels: Record<string, string> = {
-      g: 'g',
-      ml: 'ml',
-      piece: 'piece',
-      tbsp: 'tbsp',
-      tsp: 'tsp',
-      cup: 'cup',
-      pinch: 'pinch'
-    }
-    return unitLabels[unit] || unit
-  }
-
-  const formatQuantity = (quantity: number): string => {
-    if (quantity === Math.floor(quantity)) {
-      return quantity.toString()
-    }
-    return quantity.toFixed(2).replace(/\.?0+$/, '')
   }
 
   if (loading) {
@@ -223,34 +204,11 @@ export function RecipeDetail() {
       {/* Main Content */}
       <div className="recipe-content">
         {/* Ingredients Section */}
-        <section className="recipe-section ingredients-section" aria-labelledby="ingredients-heading">
-          <h2 id="ingredients-heading" className="section-title">
-            <ChefHat className="section-icon" aria-hidden="true" />
-            Ingredients
-          </h2>
-          
-          {recipe.ingredients.length === 0 ? (
-            <p className="empty-section">No ingredients listed for this recipe.</p>
-          ) : (
-            <ul className="ingredients-list" role="list">
-              {recipe.ingredients.map((ingredient, index) => (
-                <li 
-                  key={ingredient.id} 
-                  className="ingredient-item"
-                  style={{ '--i': index } as React.CSSProperties}
-                >
-                  <span className="ingredient-quantity">
-                    {formatQuantity(ingredient.quantity)}
-                  </span>
-                  <span className="ingredient-unit">
-                    {formatUnit(ingredient.unit)}
-                  </span>
-                  <span className="ingredient-name">{ingredient.name}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <IngredientList 
+          ingredients={recipe.ingredients}
+          title="Ingredients"
+          showCheckboxes={true}
+        />
 
         {/* Instructions Section */}
         <section className="recipe-section instructions-section" aria-labelledby="instructions-heading">
