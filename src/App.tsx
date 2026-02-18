@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { RecipeList } from './pages/RecipeList'
+import { RecipeDetail } from './pages/RecipeDetail'
 import './App.css'
 
 function RecipeListPage() {
@@ -22,12 +23,7 @@ function RecipeListPage() {
 }
 
 function RecipeDetailPage() {
-  return (
-    <div className="placeholder-page">
-      <h1>Recipe Detail</h1>
-      <p>This page is coming soon...</p>
-    </div>
-  )
+  return <RecipeDetail />
 }
 
 function NewRecipePage() {
