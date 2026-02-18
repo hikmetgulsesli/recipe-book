@@ -1,10 +1,77 @@
-#root {
-  max-width: 1280px;
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background-color: white;
+  border-bottom: 1px solid var(--border);
+  padding: var(--space-md) var(--space-xl);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-nav {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+}
+
+.app-logo {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.app-logo:hover {
+  color: var(--primary-hover);
+}
+
+.app-logo:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.app-main {
+  flex: 1;
+  background-color: var(--surface);
+}
+
+/* Placeholder pages for routes not yet implemented */
+.placeholder-page {
+  max-width: 600px;
+  margin: var(--space-3xl) auto;
+  padding: var(--space-2xl);
   text-align: center;
 }
 
-.card {
-  padding: 2em;
+.placeholder-page h1 {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: var(--space-md);
+}
+
+.placeholder-page p {
+  color: var(--text-muted);
+}
+
+/* Dark mode */
+[data-theme="dark"] .app-header {
+  background-color: var(--surface-dark);
+  border-color: var(--border);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-header {
+    padding: var(--space-md) var(--space-lg);
+  }
 }
