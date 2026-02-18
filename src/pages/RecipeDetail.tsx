@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Clock, Users, ChefHat, ArrowLeft, Edit2, Trash2, AlertCircle } from 'lucide-react'
 import type { RecipeWithIngredients } from '../types'
-import { IngredientList } from '../components'
+import { IngredientList, PortionCalculator } from '../components'
 import './RecipeDetail.css'
 
 export function RecipeDetail() {
@@ -203,6 +203,12 @@ export function RecipeDetail() {
 
       {/* Main Content */}
       <div className="recipe-content">
+        {/* Portion Calculator */}
+        <PortionCalculator
+          originalServings={recipe.servings}
+          ingredients={recipe.ingredients}
+        />
+
         {/* Ingredients Section */}
         <IngredientList 
           ingredients={recipe.ingredients}

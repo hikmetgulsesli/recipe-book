@@ -1,2 +1,5 @@
 export { IngredientList } from './IngredientList'
 export type { Ingredient, IngredientListProps } from './IngredientList'
+
+export { PortionCalculator } from './PortionCalculator'
+export type { Ingredient as PortionIngredient, PortionCalculatorProps } from './PortionCalculator'
