@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
+import { RecipeForm } from './pages/RecipeForm'
 import './App.css'
 
 function RecipeListPage() {
@@ -27,12 +28,11 @@ function RecipeDetailPage() {
 }
 
 function NewRecipePage() {
-  return (
-    <div className="placeholder-page">
-      <h1>New Recipe</h1>
-      <p>This page is coming soon...</p>
-    </div>
-  )
+  return <RecipeForm />
+}
+
+function EditRecipePage() {
+  return <RecipeForm />
 }
 
 function App() {
@@ -52,6 +52,7 @@ function App() {
             <Route path="/" element={<Navigate to="/recipes" replace />} />
             <Route path="/recipes" element={<RecipeListPage />} />
             <Route path="/recipes/new" element={<NewRecipePage />} />
+            <Route path="/recipes/:id/edit" element={<EditRecipePage />} />
             <Route path="/recipes/:id" element={<RecipeDetailPage />} />
           </Routes>
         </main>
