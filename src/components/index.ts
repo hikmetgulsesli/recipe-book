@@ -9,3 +9,6 @@ export type { TimerProps } from './Timer'
 
 export { ToastContainer } from './ToastContainer'
 export type { ToastContainerProps } from './ToastContainer'
+
+export { Layout } from './Layout'
+export type { LayoutProps } from './Layout'

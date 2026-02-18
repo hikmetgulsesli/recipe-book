@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { RecipeList } from './pages/RecipeList'
 import { RecipeDetail } from './pages/RecipeDetail'
 import { RecipeForm } from './pages/RecipeForm'
+import { Layout } from './components/Layout'
 import { ToastContainer } from './components/ToastContainer'
 import { useToast } from './hooks/useToast'
 import './App.css'
@@ -63,33 +64,23 @@ function AppContent() {
 
   return (
     <>
-      <div className="app">
-        <header className="app-header">
-          <nav className="app-nav" aria-label="Main navigation">
-            <a href="/" className="app-logo" aria-label="Recipe Book Home">
-              Recipe Book
-            </a>
-          </nav>
-        </header>
-        
-        <main className="app-main" id="main-content">
-          <Routes>
-            <Route path="/" element={<Navigate to="/recipes" replace />} />
-            <Route path="/recipes" element={
-              <RecipeListPage onSuccess={success} onError={error} />
-            } />
-            <Route path="/recipes/new" element={
-              <NewRecipePage onSuccess={success} onError={error} />
-            } />
-            <Route path="/recipes/:id/edit" element={
-              <EditRecipePage onSuccess={success} onError={error} />
-            } />
-            <Route path="/recipes/:id" element={
-              <RecipeDetailPage onSuccess={success} onError={error} />
-            } />
-          </Routes>
-        </main>
-      </div>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Navigate to="/recipes" replace />} />
+          <Route path="/recipes" element={
+            <RecipeListPage onSuccess={success} onError={error} />
+          } />
+          <Route path="/recipes/new" element={
+            <NewRecipePage onSuccess={success} onError={error} />
+          } />
+          <Route path="/recipes/:id/edit" element={
+            <EditRecipePage onSuccess={success} onError={error} />
+          } />
+          <Route path="/recipes/:id" element={
+            <RecipeDetailPage onSuccess={success} onError={error} />
+          } />
+        </Routes>
+      </Layout>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </>
   )
