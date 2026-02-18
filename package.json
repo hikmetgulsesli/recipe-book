@@ -28,6 +28,7 @@
     "@types/express": "^5.0.6",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
+    "@types/supertest": "^6.0.3",
     "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
@@ -36,6 +37,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "jsdom": "^23.0.1",
+    "supertest": "^7.2.2",
     "typescript": "^5.2.2",
     "vite": "^5.0.8",
     "vitest": "^1.1.0"
