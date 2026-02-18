@@ -3,9 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Clock, Users, ChefHat, ArrowLeft, Edit2, Trash2, AlertCircle } from 'lucide-react'
 import type { RecipeWithIngredients } from '../types'
 import { IngredientList, PortionCalculator, Timer } from '../components'
+import { apiClient } from '../utils/apiClient'
+import { getUserFriendlyError } from '../utils/apiErrors'
 import './RecipeDetail.css'
 
-export function RecipeDetail() {
+interface RecipeDetailProps {
+  onError?: (message: string) => void
+  onSuccess?: (message: string) => void
+}
+
+export function RecipeDetail({ onError, onSuccess }: RecipeDetailProps) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [recipe, setRecipe] = useState<RecipeWithIngredients | null>(null)
@@ -24,19 +31,12 @@ export function RecipeDetail() {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api/recipes/${recipeId}`)
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Recipe not found')
-        }
-        throw new Error('Failed to fetch recipe')
-      }
-      
-      const data = await response.json()
+      const data = await apiClient.get<RecipeWithIngredients>(`/api/recipes/${recipeId}`)
       setRecipe(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      const message = getUserFriendlyError(err)
+      setError(message)
+      onError?.(message)
     } finally {
       setLoading(false)
     }
@@ -51,17 +51,13 @@ export function RecipeDetail() {
     
     try {
       setDeleting(true)
-      const response = await fetch(`/api/recipes/${id}`, {
-        method: 'DELETE'
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to delete recipe')
-      }
-      
+      await apiClient.delete(`/api/recipes/${id}`)
+      onSuccess?.('Recipe deleted successfully')
       navigate('/recipes')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete recipe')
+      const message = getUserFriendlyError(err)
+      setError(message)
+      onError?.(message)
       setDeleting(false)
       setShowDeleteConfirm(false)
     }

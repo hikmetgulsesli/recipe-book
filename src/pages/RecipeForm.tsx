@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, Trash2, AlertCircle, Loader2, Save } from 'lucide-react'
 import type { Ingredient, RecipeWithIngredients } from '../types'
+import { apiClient } from '../utils/apiClient'
+import { getUserFriendlyError } from '../utils/apiErrors'
 import './RecipeForm.css'
 
 interface IngredientRow {
@@ -20,7 +22,12 @@ interface FormErrors {
   general?: string
 }
 
-export function RecipeForm() {
+interface RecipeFormProps {
+  onSuccess?: (message: string) => void
+  onError?: (message: string) => void
+}
+
+export function RecipeForm({ onSuccess, onError }: RecipeFormProps) {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const isEditMode = Boolean(id)
@@ -51,12 +58,12 @@ export function RecipeForm() {
 
   const fetchIngredients = async () => {
     try {
-      const response = await fetch('/api/ingredients')
-      if (!response.ok) throw new Error('Failed to fetch ingredients')
-      const result = await response.json()
+      const result = await apiClient.get<{ data: Ingredient[] }>('/api/ingredients')
       setAvailableIngredients(result.data || [])
     } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'Failed to load ingredients')
+      const message = getUserFriendlyError(err)
+      setFetchError(message)
+      onError?.(message)
     }
   }
 
@@ -64,17 +71,8 @@ export function RecipeForm() {
     try {
       setLoading(true)
       setFetchError(null)
-      const response = await fetch(`/api/recipes/${recipeId}`)
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Recipe not found')
-        }
-        throw new Error('Failed to fetch recipe')
-      }
-      
-      const result = await response.json()
-      const recipe: RecipeWithIngredients = result.data
+      const result = await apiClient.get<{ data: RecipeWithIngredients }>(`/api/recipes/${recipeId}`)
+      const recipe = result.data
       
       // Populate form
       setName(recipe.name)
@@ -95,7 +93,9 @@ export function RecipeForm() {
         )
       }
     } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'An error occurred')
+      const message = getUserFriendlyError(err)
+      setFetchError(message)
+      onError?.(message)
     } finally {
       setLoading(false)
     }
@@ -172,39 +172,24 @@ export function RecipeForm() {
         ingredients
       }
 
-      const url = isEditMode ? `/api/recipes/${id}` : '/api/recipes'
-      const method = isEditMode ? 'PUT' : 'POST'
+      let savedRecipe: RecipeWithIngredients
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(recipeData)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null)
-        if (errorData?.error?.details) {
-          const serverErrors: FormErrors = {}
-          errorData.error.details.forEach((err: { field: string; message: string }) => {
-            serverErrors[err.field as keyof FormErrors] = err.message
-          })
-          setErrors(serverErrors)
-          throw new Error('Validation failed')
-        }
-        throw new Error(errorData?.error?.message || 'Failed to save recipe')
+      if (isEditMode) {
+        const result = await apiClient.put<{ data: RecipeWithIngredients }>(`/api/recipes/${id}`, recipeData)
+        savedRecipe = result.data
+        onSuccess?.('Recipe updated successfully')
+      } else {
+        const result = await apiClient.post<{ data: RecipeWithIngredients }>('/api/recipes', recipeData)
+        savedRecipe = result.data
+        onSuccess?.('Recipe created successfully')
       }
-
-      const result = await response.json()
-      const savedRecipe: RecipeWithIngredients = result.data
 
       // Navigate to recipe detail page
       navigate(`/recipes/${savedRecipe.id}`)
     } catch (err) {
-      if (err instanceof Error && err.message !== 'Validation failed') {
-        setErrors(prev => ({ ...prev, general: err.message }))
-      }
+      const message = getUserFriendlyError(err)
+      setErrors(prev => ({ ...prev, general: message }))
+      onError?.(message)
     } finally {
       setSaving(false)
     }

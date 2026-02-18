@@ -6,3 +6,6 @@ export type { Ingredient as PortionIngredient, PortionCalculatorProps } from './
 
 export { Timer } from './Timer'
 export type { TimerProps } from './Timer'
+
+export { ToastContainer } from './ToastContainer'
+export type { ToastContainerProps } from './ToastContainer'

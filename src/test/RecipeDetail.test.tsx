@@ -40,6 +40,7 @@ const mockRecipe = {
 describe('RecipeDetail Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockFetch.mockReset()
   })
 
   afterEach(() => {
@@ -450,7 +451,8 @@ describe('RecipeDetail Component', () => {
           json: async () => mockRecipe
         })
         .mockResolvedValueOnce({
-          ok: true
+          ok: true,
+          status: 204
         })
 
       render(
@@ -472,9 +474,9 @@ describe('RecipeDetail Component', () => {
       fireEvent.click(screen.getByRole('button', { name: /confirm delete recipe/i }))
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith('/api/recipes/1', {
+        expect(mockFetch).toHaveBeenCalledWith('/api/recipes/1', expect.objectContaining({
           method: 'DELETE'
-        })
+        }))
         expect(mockNavigate).toHaveBeenCalledWith('/recipes')
       })
     })
@@ -521,7 +523,11 @@ describe('RecipeDetail Component', () => {
 
   describe('Error State', () => {
     it('should show error message when fetch fails', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
+      // apiClient retries 2 times, so we need 3 rejections
+      mockFetch
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockRejectedValueOnce(new Error('fetch failed'))
 
       render(
         <BrowserRouter>
@@ -530,14 +536,15 @@ describe('RecipeDetail Component', () => {
       )
 
       await waitFor(() => {
-        expect(screen.getByText('Network error')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Network error. Please check your connection.')).toBeInTheDocument()
+      }, { timeout: 10000 })
     })
 
     it('should show error message for 404 response', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
-        status: 404
+        status: 404,
+        json: async () => ({ error: { message: 'Recipe not found', code: 'NOT_FOUND' } })
       })
 
       render(
@@ -548,11 +555,15 @@ describe('RecipeDetail Component', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Recipe not found')).toBeInTheDocument()
-      })
+      }, { timeout: 3000 })
     })
 
     it('should show retry button when fetch fails', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
+      // apiClient retries 2 times, so we need 3 rejections
+      mockFetch
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockRejectedValueOnce(new Error('fetch failed'))
 
       render(
         <BrowserRouter>
@@ -562,7 +573,7 @@ describe('RecipeDetail Component', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
-      })
+      }, { timeout: 10000 })
     })
   })
 

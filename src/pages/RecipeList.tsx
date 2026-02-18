@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Clock, Users, ChefHat } from 'lucide-react'
 import type { Recipe } from '../types'
+import { apiClient } from '../utils/apiClient'
+import { getUserFriendlyError } from '../utils/apiErrors'
 import './RecipeList.css'
 
 interface RecipeWithCount extends Recipe {
@@ -10,9 +12,10 @@ interface RecipeWithCount extends Recipe {
 interface RecipeListProps {
   onRecipeClick?: (recipeId: number) => void
   onNewRecipeClick?: () => void
+  onError?: (message: string) => void
 }
 
-export function RecipeList({ onRecipeClick, onNewRecipeClick }: RecipeListProps) {
+export function RecipeList({ onRecipeClick, onNewRecipeClick, onError }: RecipeListProps) {
   const [recipes, setRecipes] = useState<RecipeWithCount[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,16 +28,12 @@ export function RecipeList({ onRecipeClick, onNewRecipeClick }: RecipeListProps)
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch('/api/recipes')
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch recipes')
-      }
-      
-      const data = await response.json()
+      const data = await apiClient.get<RecipeWithCount[]>('/api/recipes')
       setRecipes(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      const message = getUserFriendlyError(err)
+      setError(message)
+      onError?.(message)
     } finally {
       setLoading(false)
     }

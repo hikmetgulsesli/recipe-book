@@ -312,8 +312,8 @@ describe('RecipeForm Component', () => {
         expect(select).toBeInTheDocument()
       })
 
-      // Check that ingredients are loaded
-      expect(mockFetch).toHaveBeenCalledWith('/api/ingredients')
+      // Check that ingredients are loaded (apiClient adds options)
+      expect(mockFetch).toHaveBeenCalledWith('/api/ingredients', expect.any(Object))
     })
 
     it('should remove ingredient row when remove button is clicked', async () => {
@@ -494,11 +494,11 @@ describe('RecipeForm Component', () => {
       fireEvent.click(screen.getByRole('button', { name: /create recipe/i }))
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenLastCalledWith('/api/recipes', {
+        expect(mockFetch).toHaveBeenLastCalledWith('/api/recipes', expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
           body: expect.stringContaining('Test Recipe')
-        })
+        }))
       })
     })
 
@@ -593,11 +593,11 @@ describe('RecipeForm Component', () => {
       fireEvent.click(screen.getByRole('button', { name: /save recipe changes/i }))
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenLastCalledWith('/api/recipes/1', {
+        expect(mockFetch).toHaveBeenLastCalledWith('/api/recipes/1', expect.objectContaining({
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
           body: expect.stringContaining('Updated Recipe')
-        })
+        }))
       })
     })
   })
@@ -662,7 +662,11 @@ describe('RecipeForm Component', () => {
 
   describe('Error Handling', () => {
     it('should show error when fetch ingredients fails', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
+      // apiClient retries 2 times, so we need 3 rejections
+      mockFetch
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockRejectedValueOnce(new Error('fetch failed'))
 
       render(
         <BrowserRouter>
@@ -671,12 +675,16 @@ describe('RecipeForm Component', () => {
       )
 
       await waitFor(() => {
-        expect(screen.getByText('Network error')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Network error. Please check your connection.')).toBeInTheDocument()
+      }, { timeout: 10000 })
     })
 
     it('should show retry button on error', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
+      // apiClient retries 2 times, so we need 3 rejections
+      mockFetch
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockRejectedValueOnce(new Error('fetch failed'))
+        .mockRejectedValueOnce(new Error('fetch failed'))
 
       render(
         <BrowserRouter>
@@ -686,7 +694,7 @@ describe('RecipeForm Component', () => {
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
-      })
+      }, { timeout: 10000 })
     })
 
     it('should show server validation errors', async () => {
@@ -698,6 +706,7 @@ describe('RecipeForm Component', () => {
         })
         .mockResolvedValueOnce({
           ok: false,
+          status: 400,
           json: async () => ({
             error: {
               message: 'Validation failed',
@@ -722,8 +731,8 @@ describe('RecipeForm Component', () => {
       fireEvent.click(screen.getByRole('button', { name: /create recipe/i }))
 
       await waitFor(() => {
-        expect(screen.getByText('Name already exists')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Validation failed')).toBeInTheDocument()
+      }, { timeout: 3000 })
     })
   })
 

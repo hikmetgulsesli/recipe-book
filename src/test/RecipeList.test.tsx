@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { RecipeList } from '../pages/RecipeList'
 import '@testing-library/jest-dom'
@@ -40,11 +40,11 @@ describe('RecipeList Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockFetch.mockReset()
+    console.log('DEBUG beforeEach: mockFetch mock.calls length:', mockFetch.mock.calls.length)
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
+  // afterEach cleanup handled by beforeEach
 
   describe('Loading State', () => {
     it('should show loading spinner while fetching recipes', async () => {
@@ -281,31 +281,52 @@ describe('RecipeList Component', () => {
 
   describe('Error State', () => {
     it('should show error message when fetch fails', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'))
+      // apiClient retries 2 times, so we need 3 rejections
+      mockFetch
+        .mockImplementationOnce(() => Promise.reject(new Error('fetch failed')))
+        .mockImplementationOnce(() => Promise.reject(new Error('fetch failed')))
+        .mockImplementationOnce(() => Promise.reject(new Error('fetch failed')))
 
       render(<RecipeList />)
 
       await waitFor(() => {
-        expect(screen.getByText('Network error')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Network error. Please check your connection.')).toBeInTheDocument()
+      }, { timeout: 10000 })
     })
 
     it('should show error message for non-ok response', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500
-      })
+      // apiClient retries 2 times on 5xx errors
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          json: async () => ({ error: { message: 'Server error', code: 'SERVER_ERROR' } })
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          json: async () => ({ error: { message: 'Server error', code: 'SERVER_ERROR' } })
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 500,
+          json: async () => ({ error: { message: 'Server error', code: 'SERVER_ERROR' } })
+        })
 
       render(<RecipeList />)
 
       await waitFor(() => {
-        expect(screen.getByText('Failed to fetch recipes')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Server error. Please try again later.')).toBeInTheDocument()
+      }, { timeout: 10000 })
     })
 
     it('should retry fetch when retry button is clicked', async () => {
+      // First attempt: 3 rejections (initial + 2 retries)
+      // Then retry button click: 3 more rejections + success
       mockFetch
-        .mockRejectedValueOnce(new Error('Network error'))
+        .mockImplementationOnce(() => Promise.reject(new Error('fetch failed')))
+        .mockImplementationOnce(() => Promise.reject(new Error('fetch failed')))
+        .mockImplementationOnce(() => Promise.reject(new Error('fetch failed')))
         .mockResolvedValueOnce({
           ok: true,
           json: async () => mockRecipes
@@ -314,8 +335,8 @@ describe('RecipeList Component', () => {
       render(<RecipeList />)
 
       await waitFor(() => {
-        expect(screen.getByText('Network error')).toBeInTheDocument()
-      })
+        expect(screen.getByText('Network error. Please check your connection.')).toBeInTheDocument()
+      }, { timeout: 10000 })
 
       fireEvent.click(screen.getByText('Try Again'))
 
