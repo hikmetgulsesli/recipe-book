@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import recipeRoutes from './recipes.js'
+import ingredientRoutes from './ingredients.js'
 import { formatErrorResponse, AppError } from '../utils/errors.js'
 
 export function createServer() {
@@ -12,6 +13,7 @@ export function createServer() {
   
   // Routes
   app.use('/api/recipes', recipeRoutes)
+  app.use('/api/ingredients', ingredientRoutes)
   
   // Health check
   app.get('/api/health', (_req, res) => {

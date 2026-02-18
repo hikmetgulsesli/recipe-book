@@ -11,7 +11,7 @@ import {
 } from '../db/database.js'
 import fs from 'fs'
 
-const TEST_DB_PATH = './test-recipe-book.db'
+const TEST_DB_PATH = './test-database-recipe-book.db'
 
 // Set test database path
 process.env.DATABASE_URL = TEST_DB_PATH
