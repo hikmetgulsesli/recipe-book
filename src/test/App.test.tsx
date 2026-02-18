@@ -9,8 +9,8 @@ describe('App', () => {
     expect(screen.getByText('Recipe Book')).toBeInTheDocument()
   })
 
-  it('renders description text', () => {
+  it('renders My Recipes heading', () => {
     render(<App />)
-    expect(screen.getByText(/Tarif ekle/)).toBeInTheDocument()
+    expect(screen.getByText('My Recipes')).toBeInTheDocument()
   })
 })
